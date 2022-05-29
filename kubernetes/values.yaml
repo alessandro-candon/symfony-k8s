@@ -1,0 +1,67 @@
+image:
+  php:
+    repository: ''
+    pullPolicy: IfNotPresent
+    tag: ""
+  nginx:
+    repository: nginx
+    pullPolicy: IfNotPresent
+    tag: 1.20.2
+
+nameOverride: "symfony"
+fullnameOverride: "symfony-k8s"
+
+environments:
+  APP_ENV: prod
+  APP_SECRET: '010d0917a759da7cb22d0534d2dd1521'
+
+resources:
+  phpfpm:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  nginx:
+    limits:
+      cpu: 50m
+      memory: 64Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+
+replicaCount: 1
+
+messagerDeployment: false
+
+podSecurityContext: {}
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+      - path: /
+        backend:
+          serviceName: chart-example.local
+          servicePort: 80
+  tls: []
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

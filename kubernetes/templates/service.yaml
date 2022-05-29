@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ include "core.fullname" . }}-cip
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ include "core.fullname" . }}-phpfpm
+
+

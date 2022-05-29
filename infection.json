@@ -1,0 +1,67 @@
+{
+  "source": {
+    "directories": [
+      "src"
+    ],
+    "excludes": [
+      "Security",
+      "EventListener"
+    ]
+  },
+  "logs": {
+    "text": "infection-log.txt",
+    "summary": "summary-log.txt",
+    "html": "infection.html",
+    "debug": "debug-log.txt"
+  },
+  "timeout": 15,
+  "mutators": {
+    "global-ignoreSourceCodeByRegex": [
+      "assert.*",
+      ".*->setDefaults\\(\\[.*"
+    ],
+    "@default": true,
+    "DecrementInteger": {
+      "ignoreSourceCodeByRegex": [
+        ".*throw\\s+new\\s+.+Exception.*",
+        ".*default_page_size.*",
+        ".*__construct.*"
+      ]
+    },
+    "CastString": {
+      "ignore": [
+        "Entity\\*",
+        "Controller\\*"
+      ]
+    },
+    "UnwrapArrayUnique": {
+      "ignore": [
+        "Entity\\*"
+      ]
+    },
+    "IncrementInteger": {
+      "ignoreSourceCodeByRegex": [
+        ".*throw\\s+new\\s+.+Exception.*",
+        ".*default_page_size.*",
+        ".*__construct.*"
+      ]
+    },
+    "PublicVisibility": {
+      "ignore": [
+        "*"
+      ]
+    },
+    "PregMatchRemoveCaret": {
+      "ignore": [
+        "*"
+      ]
+    },
+    "PregMatchRemoveDollar": {
+      "ignore": [
+        "*"
+      ]
+    }
+  },
+  "minMsi": 85,
+  "minCoveredMsi": 85
+}

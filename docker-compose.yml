@@ -1,0 +1,56 @@
+version: '3.7'
+services:
+  php-fpm:
+    working_dir: /app
+    depends_on:
+      - redis
+      - postgres
+    build:
+      context: .
+      target: php_dev
+      dockerfile: Dockerfile
+    entrypoint: symfony local:server:start --no-tls --port=80
+    ports: ['8812:80']
+    volumes:
+      - .:/app:cached
+      - ./bin:/app/bin:consistent
+      - ./config:/app/config:consistent
+      - ./public:/app/public:consistent
+      - ./src:/app/src:consistent
+      - ./var:/app/var:consistent
+      - ${HOME}/.config/gcloud:/root/.config/gcloud:cached
+  messenger:
+    working_dir: /app
+    depends_on:
+      - php-fpm
+    build:
+      context: .
+      target: php_dev
+      dockerfile: Dockerfile
+#    entrypoint: php /app/bin/console messenger:consume async --time-limit=3600
+    volumes:
+      - .:/app
+      - ./bin:/app/bin:consistent
+      - ./config:/app/config:consistent
+      - ./public:/app/public:consistent
+      - ./src:/app/src:consistent
+      - ./var:/app/var:consistent
+  postgres:
+    image: bitnami/postgresql:12
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      ALLOW_EMPTY_PASSWORD: 'yes'
+    volumes:
+      - ./.data/postgres:/var/lib/postgresql/data
+  redis:
+    image: "redis:alpine"
+    command: redis-server
+    environment:
+      - REDIS_REPLICATION_MODE=master
+  pgadmin:
+    image: bitnami/phppgadmin
+    environment:
+      DATABASE_HOST: postgres
+    ports: ['8082:8080', '8446:8443' ]
+    depends_on:
+      - postgres

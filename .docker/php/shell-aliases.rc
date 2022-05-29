@@ -1,0 +1,5 @@
+alias xmode.debug="sed -i 's/^xdebug.mode=.*/xdebug.mode=debug/g' $XDEBUG_CONF_FILE && kill -USR2 1"
+alias xmode.off="sed -i 's/^xdebug.mode=.*/xdebug.mode=off/g' $XDEBUG_CONF_FILE && kill -USR2 1"
+alias xmode.develop="sed -i 's/^xdebug.mode=.*/xdebug.mode=develop/g' $XDEBUG_CONF_FILE && kill -USR2 1"
+alias xmode.coverage="sed -i 's/^xdebug.mode=.*/xdebug.mode=coverage/g' $XDEBUG_CONF_FILE && kill -USR2 1"
+alias sfcc="rm -rf /app/var/cache/*"

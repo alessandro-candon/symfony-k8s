@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "core.fullname" . }}-nginx-configmap
+data:
+  default.conf.template: |
+    server {
+        listen 80;
+        server_tokens off;
+        client_max_body_size 20M;
+
+        server_name _;
+        root /app/public;
+
+        location / {
+            try_files /dev/null @rewriteapp;
+        }
+
+        set $logging 1;
+        location ~ ^/(ping|health)$ {
+            if ( $http_user_agent ~* "(HealthChecker|Go-http-client|kube-probe)" ) {
+                set $logging 0;
+            }
+
+            rewrite ^(.*)$ /index.php/$1 last;
+        }
+
+        location @rewriteapp {
+            rewrite ^(.*)$ /index.php/$1 last;
+        }
+
+        location ~ ^/(index)\.php(/|$) {
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_split_path_info ^(.+\.php)(/.*)$;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_param HTTPS $https;
+        }
+
+        access_log /var/log/nginx/access.log main if=$logging;
+    }
+
+
+

@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "core.fullname" . }}-phpfpm
+  labels:
+    app: {{ include "core.fullname" . }}-phpfpm
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ include "core.fullname" . }}-phpfpm
+  template:
+    metadata:
+      labels:
+        app: {{ include "core.fullname" . }}-phpfpm
+    spec:
+      serviceAccountName: {{ include "core.fullname" . }}-serviceaccount
+      volumes:
+      - name: nginx-configmap
+        configMap:
+          name: {{ include "core.fullname" . }}-nginx-configmap
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.php.repository }}:{{ .Values.image.php.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.php.pullPolicy }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - sleep 30
+          ports:
+            - containerPort: 9000
+          env:
+            {{- range $name, $value := .Values.environments }}
+            - name: {{ $name | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- range $secret := .Values.secrets }}
+            - name: {{ $secret.name | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret.secretKeyRefName }}
+                  key:  {{ $secret.secretKeyRefKey }}
+            {{- end }}
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'cgi-fcgi -bind -connect 127.0.0.1:9000'
+            initialDelaySeconds: 1
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'cgi-fcgi -bind -connect 127.0.0.1:9000'
+            initialDelaySeconds: 1
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 5
+          resources:
+{{ toYaml .Values.resources.phpfpm | nindent 12 }}
+        - name: {{ include "core.fullname" . }}-nginx
+          image: {{ .Values.image.nginx.repository }}:{{ .Values.image.nginx.tag }}
+          imagePullPolicy: {{ .Values.image.nginx.pullPolicy }}
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /etc/nginx/templates/
+              name: nginx-configmap
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - nginx -s quit; while killall -0 nginx; do sleep 1; done
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 1
+            timeoutSeconds: 5
+            periodSeconds: 60
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 80
+            initialDelaySeconds: 1
+            timeoutSeconds: 5
+            periodSeconds: 60
+            failureThreshold: 3
+            successThreshold: 1
+          resources:
+{{ toYaml .Values.resources.nginx | nindent 12 }}

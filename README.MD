@@ -16,7 +16,7 @@ First of all :
 0 cost hosted prohect on GCP with cloud run
 
 1) create autopilot cluster on GCP
-2) buld phpfpm image `docker run -p 8080:8080 -it --rm gcr.io/<project-name>/symfony-cloudrun`
+2) buld phpfpm image `docker build -t gcr.io/<project-name>/symfony-cloudrun -f cloudrun/Dockerfile .`
 3) push the image : `docker push gcr.io/<project-name>/symfony-cloudrun`
 4) deploy on cloud run : `gcloud run deploy symfony --image gcr.io/<project-name>/symfony-cloudrun --region europe-west4 --platform managed --allow-unauthenticated --memory 1G`
 
